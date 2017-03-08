@@ -11,18 +11,19 @@ function dance(name, deps) {
             console.log("dance1")
             deps.io.sockets.emit('/message', params);
 
-            deps.client.takeoff();
+    // deps.client.takeoff();
 
             deps.client
                 .after(3000, function() {
+                    
                     this.animateLeds('fire', 2, 3);
                 }).after(5000, function() {
                     //this.clockwise(.5);
-                    //this.animate("wave", 3000);
+                    // this.animate("wave", 3000);
                     this.animateLeds('redSnake', 6, 4);
                 }).after(5000, function() {
-                    this.stop();
-                    this.land();
+            // this.stop();
+            // this.land();
                 })
         });
 
