@@ -19,7 +19,7 @@
         // $('#cockpit').append('<img id="droneblue" src="/plugin/track/images/droneblue.png" />');
         $('#cockpit').append('<canvas id="trackcanvas"></canvas>');
         var ctx = $("#trackcanvas")[0].getContext('2d');
-
+        
         ctx.canvas.width = this.canvas.clientWidth
         ctx.canvas.height = this.canvas.clientHeight
         
@@ -29,7 +29,11 @@
 
     Track.prototype.listen = function listen() {
         var track = this;
+    
+        track.hookNextFrame();
+        // track.on('done', this.hookNextFrame.bind(this));
 
+        
         tracking.ColorTracker.registerColor('droneblue', function(r, g, b) {
 
             var dx = r - 57;
@@ -65,6 +69,16 @@
         this.cockpit.socket.emit("/track/track1", {
             params
         });
+    };
+
+    Track.prototype.update = function(frameBuffer) {
+        
+        console.log("frame has been buffered");
+        //this.emit('done1');
+    };
+
+    Track.prototype.hookNextFrame = function() {
+        this.cockpit.videostream.onNextFrame(this.update.bind(this));
     };
 
     window.Cockpit.plugins.push(Track);
