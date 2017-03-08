@@ -1,0 +1,13 @@
+/*style.css*/
+#glasspane{
+  left: 260px;
+}
+
+#markers{
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  width: 260px;
+  background: #CCC;
+}
