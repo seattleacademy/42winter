@@ -1,0 +1,9 @@
+#trackcanvas {
+	position: absolute;
+	opacity: 0.5;
+    position: absolute;
+    z-index: 3;
+    top: 0px;
+    left: 0px;
+    background-color: blue;
+}
