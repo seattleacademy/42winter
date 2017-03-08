@@ -13,16 +13,17 @@ function dance(name, deps) {
             //deps.client.animate(params.name, params.duration);
 
 
-            deps.client.takeoff();
+           // deps.client.takeoff();
 
             deps.client
                 .after(3000, function() {
-                    this.hover();
+                    this.animateLeds('fire', 2, 3);
                 }).after(5000, function() {
-                    this.clockwise();
+                  //this.clockwise(.5);
+                   this.animateLeds('redSnake', 6, 4);
                 }).after(5000, function() {
-                    this.stop();
-                    this.land();
+                   // this.stop();
+                    //this.land();
                 })
         });
 
@@ -30,3 +31,11 @@ function dance(name, deps) {
 }
 
 module.exports = dance;
+
+// Flying commands, values are between 0 and 1
+// takeoff(),stop(),land(),up(.3), down(.2), clockwise(.5),front(.1), back(.2), counterClockwise(.3)
+// animateLeds takes name, hz cycles per seconds, and duration in seconds
+// values for animateLeds
+// blinkGreenRed,blinkGreen,blinkRed,blinkOrange,fire,standard,red,green,redSnake,blank,
+// rightMissile,leftMissile,doubleMissile,frontLeftGreenOthersRed,frontRightGreenOthersRed,
+// rearRightGreenOthersRed,rearLeftGreenOthersRed,leftGreenRightRed,leftRedRightGreen,blinkStandard
