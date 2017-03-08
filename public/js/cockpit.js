@@ -7,11 +7,11 @@
         this.loadPlugins();
 
         // Fullscreen on doubleclick
-        $("#glasspane").dblclick(function(ev) {
-            ev.preventDefault();
-            $(document).toggleFullScreen();
-            return false;
-        });
+        // $("#glasspane").dblclick(function(ev) {
+        //     ev.preventDefault();
+        //     $(document).toggleFullScreen();
+        //     return false;
+        // });
 
         // Basic socket messages
         this.socket.on('/message', function(data) {
