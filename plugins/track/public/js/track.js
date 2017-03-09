@@ -74,6 +74,8 @@
     Track.prototype.update = function(frameBuffer) {
         
         console.log("frame has been buffered");
+                this.cockpit.videostream.onNextFrame(this.update.bind(this));
+
         //this.emit('done1');
     };
 
