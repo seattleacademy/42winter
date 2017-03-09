@@ -13,11 +13,11 @@
         $("#controls").prepend('out: <input id="out" value="1000" />');
         $("#controls").prepend(' r: <span id="r1">255</span> g: <span id="g1">0</span> b: <span id="b1">0</span> ');
 
-        var ctx = $("#trackcanvas")[0].getContext('2d');
-        
-        ctx.canvas.width = this.canvas.clientWidth*2
-        ctx.canvas.height = this.canvas.clientHeight/2
-        this.ctx = ctx;
+        this.trackcanvas = $("#trackcanvas")[0];
+        this.ctx = this.trackcanvas.getContext('2d');
+
+        this.ctx.canvas.width = this.canvas.clientWidth / 2
+        this.ctx.canvas.height = this.canvas.clientHeight / 2
         this.r1 = $("#r1").text();
         this.g1 = $("#g1").text();
         this.b1 = $("#b1").text();
@@ -30,15 +30,15 @@
     Track.prototype.listen = function listen() {
         var track = this;
         track.count = 0;
-    
+
         // track.on('done', this.hookNextFrame.bind(this));
-        console.log('tracccc',tracking)
+        console.log('tracccc', tracking)
 
         tracking.ColorTracker.registerColor("c1", function(r, g, b) {
             //console.log(track.r1,track.threshold)
-            track.count --
-            //$("#out").val(track.count);
-            var dx = r - track.r1;
+            track.count--
+                //$("#out").val(track.count);
+                var dx = r - track.r1;
             var dy = g - track.g1;
             var dz = b - track.b1;
 
@@ -46,25 +46,33 @@
         });
 
         track.tracker = new tracking.ColorTracker(["c1"]);
-        console.log('tracker',track.tracker)
+        console.log('tracker', track.tracker)
 
         //tracking.track("#trackcanvas", tracker, {camera: true});
         tracking.track("#trackcanvas", track.tracker);
-        setInterval(function(){
+        setInterval(function() {
             console.log('trackmeee')
-                    tracking.track("#trackcanvas", track.tracker);
-        },1000)
-        console.log(track.tracker,"trackme")
+            tracking.track("#trackcanvas", track.tracker);
+        }, 1000)
+        console.log(track.tracker, "trackme")
+
+
         track.tracker.on('track', function(event) {
-            console.log('trackkk')
-            if (event.data.length === 0) {
-                console.log('no events')
-                // No colors were detected in this frame.
-            } else {
-                event.data.forEach(function(rect) {
-                    console.log(rect.x, rect.y, rect.height, rect.width, rect.color);
-                });
+            function rgb(r, g, b) {
+                return "rgb(" + r + "," + g + "," + b + ")";
             }
+             //track.ctx.clearRect(0, 0, this.trackcanvas.width, this.trackcanvas.height);
+            if (event.data.length == 0) return;
+
+            event.data.sort(function(a, b) {
+                return a.height * a.width - b.height * b.width;
+            });
+
+            var rect = event.data[0]; //The rect with the largest area
+            track.ctx.strokeStyle = rgb(r1, g1, b1);
+            track.ctx.lineWidth = 4
+            track.ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+            console.log("largest Rect",rect.width * rect.height)
         });
 
         function findPos(obj) {
@@ -110,7 +118,7 @@
         var track = this;
         var ctx = $("#trackcanvas")[0].getContext('2d');
         var origcanvas = document.querySelector('#dronestream canvas');
-        ctx.drawImage(origcanvas,0,0);
+        ctx.drawImage(origcanvas, 0, 0);
         this.cockpit.videostream.onNextFrame(this.update.bind(this));
     };
 
