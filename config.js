@@ -7,7 +7,7 @@ var config = {
         , "pilot" // Pilot the drone with the keyboard
         //,  "dance"
         //, "markers"
-        // , "track"    
+         , "track"    
     ],
 
     // Config for pilot plugin
