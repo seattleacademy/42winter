@@ -35,90 +35,97 @@
         // track.on('done', this.hookNextFrame.bind(this));
         //console.log('tracccc', tracking)
 
-        tracking.ColorTracker.registerColor("c1", function(r, g, b) {
-            //console.log(track.r1,track.threshold)
-            track.count--
-                //$("#out").val(track.count);
-                var dx = r - track.r1;
-            var dy = g - track.g1;
-            var dz = b - track.b1;
 
-            return dx * dx + dy * dy + dz * dz < track.threshold;
-        });
+	var lastState;
+	
+	tracking.ColorTracker.registerColor("cup:red", function(r, g, b) {
+		// console.log(r,g,b)
+		var dx = r - 150,
+		dy = g - 50,
+		dz = b - 50;
 
-        track.tracker = new tracking.ColorTracker(["c1"]);
+		return dx * dx + dy * dy + dz * dz < 1000; //make this number larger to match more co]ors
+	});
+	tracking.ColorTracker.registerColor("cup:green", function(r, g, b) {
+		// console.log(r,g,b)
+		var dx = r - 50,
+		dy = g - 120,
+		dz = b - 100;
+
+		return dx * dx + dy * dy + dz * dz < 1000; //make this number larger to match more co]ors
+	});
+	//Tracks the basic colors and the custom color
+	var tracker = track.tracker = new tracking.ColorTracker(["cup:red", "cup:green"]);
+	//Use this instead of the above if you just want to track the custom color
+	//var tracker = new tracking.ColorTracker("custom");
+
+	var canvas = document.getElementById('trackcanvas');
+        var context = canvas.getContext('2d');
+	tracker.on("track", function(event) {
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		var greenPos = [];
+		var redPos = [];
+		event.data.forEach(function(rect) {
+			if (rect.color === "cup:red") {
+				rect.color = "#FF0000";
+				redPos.push(rect.x);
+			} else if (rect.color === "cup:green") {
+				rect.color = "#00FF00";
+				greenPos.push(rect.x);
+			}
+
+			context.strokeStyle = rect.color;
+			context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+			context.font = "11px Helvetica";
+			context.fillStyle = rect.color;
+			context.fillText("x: " + rect.x + "px", rect.x + rect.width + 5, rect.y + 11);
+			context.fillText("y: " + rect.y + "px", rect.x + rect.width + 5, rect.y + 22);
+		});
+
+		if (greenPos.length === 0 && redPos.length !== 0) {
+			console.log('only red items found');
+			lastState = null;
+			return;
+		} else if (redPos.length === 0 && greenPos.length !== 0) {
+			console.log('only green items found');
+			lastState = null;
+			return;
+		} else if (redPos.length === 0 && greenPos.length === 0) {
+			console.log('no items found');
+			lastState = null;
+			return;
+		}
+		var greenAvgPos = greenPos.length && greenPos.reduce((pos, x) => pos + x, 0) / greenPos.length;
+		var redAvgPos = redPos.length && redPos.reduce((pos, x) => pos + x, 0) / redPos.length;
+
+		console.log('green', greenPos, greenAvgPos);
+		console.log('red', redPos, redAvgPos);
+		var state;
+		if (greenAvgPos < redAvgPos) {
+			console.log('green left, red right');
+			state = 'GREEN_RED';
+		} else {
+			console.log('red left, green right');
+			state = 'RED_GREEN';
+		}
+		if (lastState && lastState !== state) {
+			console.log('FLIP!!!!!');
+                    track.cockpit.socket.emit("/track/flip");
+			if (state === 'RED_GREEN') track.cockpit.socket.emit('/track/flipLeft');
+			else if (state === 'GREEN_RED') track.cockpit.socket.emit('/track/flipRight');
+
+		}
+		lastState = state;
+
+	});
+
+
 
         //tracking.track("#trackcanvas", tracker, {camera: true});
         tracking.track("#trackcanvas", track.tracker);
         setInterval(function() {
             tracking.track("#trackcanvas", track.tracker);
         }, 500)
-
-
-        track.tracker.on('track', function(event) {
-            function rgb(r, g, b) {
-                return "rgb(" + r + "," + g + "," + b + ")";
-            }
-             //track.ctx.clearRect(0, 0, this.trackcanvas.width, this.trackcanvas.height);
-            if (event.data.length == 0) {
-                $("#area").val("")
-                return;
-            }
-
-            event.data.sort(function(a, b) {
-                return a.height * a.width - b.height * b.width;
-            });
-
-            var rect = event.data[0]; //The rect with the largest area
-            track.ctx.strokeStyle = rgb(r1, g1, b1);
-            track.ctx.lineWidth = 4
-            track.ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-            var area = rect.width * rect.height;
-            var centerx = rect.x+rect.width/2;
-            var centery = rect.y+rect.height/2;
-            var area = rect.width * rect.height;
-            $("#area").val(area)
-            $("#centerx").val(centerx);
-            $("#centery").val(centery);
-
-        });
-
-        
-
-        function findPos(obj) {
-            var current_left = 0,
-                current_top = 0;
-            if (obj.offsetParent) {
-                do {
-                    current_left += obj.offsetLeft;
-                    current_top += obj.offsetTop;
-                } while (obj = obj.offsetParent);
-                return {
-                    x: current_left,
-                    y: current_top
-                };
-            }
-            return undefined;
-        }
-
-        $('#threshold').change(function(e) {
-            track.threshold = $("#threshold").val();
-        });
-
-        $('#trackcanvas').click(function(e) {
-            var position = findPos(this);
-            var x = e.pageX - position.x;
-            var y = e.pageY - position.y;
-            var canvas = $("#trackcanvas")[0].getContext('2d');
-            var p = canvas.getImageData(x, y, 1, 1).data;
-            $("#r1").text(p[0]);
-            $("#g1").text(p[1]);
-            $("#b1").text(p[2]);
-            track.r1 = p[0];
-            track.g1 = p[1];
-            track.b1 = p[2];
-            e.preventDefault();
-        });
 
         track.hookNextFrame();
 
