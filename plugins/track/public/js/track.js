@@ -7,10 +7,11 @@
 
         this.canvas = document.querySelector('#dronestream canvas');
 
-        console.log('found canvas, width/height:', this.canvas.clientWidth, this.canvas.clientHeight);
         $('#cockpit').append('<canvas id="trackcanvas"></canvas>');
-        $("#controls").prepend('Threshold: <input id="threshold" value="1000" />');
-        $("#controls").prepend('out: <input id="out" value="1000" />');
+        $("#controls").prepend('Threshold: <input id="threshold" value="1000" size="5" />');
+        $("#controls").prepend(' area: <input id="area" value="" size="5" />');
+        $("#controls").prepend(' y: <input id="centery" value="" size="5" />');
+        $("#controls").prepend(' x: <input id="centerx" value="" size="5" />');
         $("#controls").prepend(' r: <span id="r1">255</span> g: <span id="g1">0</span> b: <span id="b1">0</span> ');
 
         this.trackcanvas = $("#trackcanvas")[0];
@@ -32,7 +33,7 @@
         track.count = 0;
 
         // track.on('done', this.hookNextFrame.bind(this));
-        console.log('tracccc', tracking)
+        //console.log('tracccc', tracking)
 
         tracking.ColorTracker.registerColor("c1", function(r, g, b) {
             //console.log(track.r1,track.threshold)
@@ -46,15 +47,12 @@
         });
 
         track.tracker = new tracking.ColorTracker(["c1"]);
-        console.log('tracker', track.tracker)
 
         //tracking.track("#trackcanvas", tracker, {camera: true});
         tracking.track("#trackcanvas", track.tracker);
         setInterval(function() {
-            console.log('trackmeee')
             tracking.track("#trackcanvas", track.tracker);
-        }, 1000)
-        console.log(track.tracker, "trackme")
+        }, 500)
 
 
         track.tracker.on('track', function(event) {
@@ -62,7 +60,10 @@
                 return "rgb(" + r + "," + g + "," + b + ")";
             }
              //track.ctx.clearRect(0, 0, this.trackcanvas.width, this.trackcanvas.height);
-            if (event.data.length == 0) return;
+            if (event.data.length == 0) {
+                $("#area").val("")
+                return;
+            }
 
             event.data.sort(function(a, b) {
                 return a.height * a.width - b.height * b.width;
@@ -72,8 +73,17 @@
             track.ctx.strokeStyle = rgb(r1, g1, b1);
             track.ctx.lineWidth = 4
             track.ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-            console.log("largest Rect",rect.width * rect.height)
+            var area = rect.width * rect.height;
+            var centerx = rect.x+rect.width/2;
+            var centery = rect.y+rect.height/2;
+            var area = rect.width * rect.height;
+            $("#area").val(area)
+            $("#centerx").val(centerx);
+            $("#centery").val(centery);
+
         });
+
+        
 
         function findPos(obj) {
             var current_left = 0,
